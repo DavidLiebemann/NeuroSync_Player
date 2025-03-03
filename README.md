@@ -46,7 +46,16 @@ Use a local llm or OpenAI api, just set the bool and add your key.
 
 The **NeuroSync Player** allows for real-time streaming of facial blendshapes into Unreal Engine 5 using LiveLink - enabling facial animation from audio input.
 
+### Installation:
+
+1. Ensure uv package manager is installed or [install according to installation guide](https://docs.astral.sh/uv/getting-started/installation/)
+2. `uv sync` to install dependencies
+
 ![Alt text](/utils/neurosyncclose.jpg)
+
+### Running Scripts
+
+- Use `uv run [script_name].py` to run a script using the dependencies and virtual environment setup in the previous step. 
 
 ### Features:
 - Real-time facial animation
