@@ -45,3 +45,5 @@ profile.json
 
 # ------------ CUSTOM -------------
 /generated
+/wav_input
+!/wav_input/audio.wav
