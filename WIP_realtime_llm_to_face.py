@@ -1,7 +1,17 @@
+# This software is licensed under a **dual-license model**
+# For individuals and businesses earning **under $1M per year**, this software is licensed under the **MIT License**
+# Businesses or organizations with **annual revenue of $1,000,000 or more** must obtain permission to use this software commercially.
+
+
 from queue import Queue, Empty
 import threading
 import keyboard
 import pygame
+import warnings
+warnings.filterwarnings(
+    "ignore", 
+    message="Couldn't find ffmpeg or avconv - defaulting to ffmpeg, but may not work"
+)
 import time
 
 from livelink.connect.livelink_init import create_socket_connection, initialize_py_face
@@ -65,7 +75,7 @@ def main():
                 elif keyboard.is_pressed('right ctrl'):
                     start_record_time = time.time()  # Start timing from audio input
                     print(f"Recording started.")
-                    audio_input = record_audio_until_release()
+                    audio_input = record_audio_until_release(sr=22050)
                     end_record_time = time.time()
                     print(f"Recording ended. Duration: {end_record_time - start_record_time:.3f} seconds.")
                     break

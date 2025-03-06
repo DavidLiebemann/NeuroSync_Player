@@ -1,8 +1,15 @@
-# This code is licensed under the Creative Commons Attribution-NonCommercial 4.0 International License.
-# For more details, visit: https://creativecommons.org/licenses/by-nc/4.0/
+# This software is licensed under a **dual-license model**
+# For individuals and businesses earning **under $1M per year**, this software is licensed under the **MIT License**
+# Businesses or organizations with **annual revenue of $1,000,000 or more** must obtain permission to use this software commercially.
+
 
 import os
 import pygame
+import warnings
+warnings.filterwarnings(
+    "ignore", 
+    message="Couldn't find ffmpeg or avconv - defaulting to ffmpeg, but may not work"
+)
 from threading import Thread
 
 from livelink.connect.livelink_init import create_socket_connection, initialize_py_face

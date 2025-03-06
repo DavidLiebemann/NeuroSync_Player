@@ -1,7 +1,18 @@
+# This software is licensed under a **dual-license model**
+# For individuals and businesses earning **under $1M per year**, this software is licensed under the **MIT License**
+# Businesses or organizations with **annual revenue of $1,000,000 or more** must obtain permission to use this software commercially.
 import os
 from threading import Thread
 from queue import Queue, Empty
 import pygame
+import warnings
+warnings.filterwarnings(
+    "ignore", 
+    message="Couldn't find ffmpeg or avconv - defaulting to ffmpeg, but may not work"
+)
+
+import keyboard  
+import time      
 
 from livelink.connect.livelink_init import create_socket_connection, initialize_py_face
 from livelink.animations.default_animation import default_animation_loop, stop_default_animation
@@ -11,19 +22,17 @@ from utils.files.file_utils import initialize_directories
 from utils.llm.chat_utils import load_chat_history, save_chat_log
 from utils.llm.llm_utils import stream_llm_chunks 
 from utils.audio_face_workers import audio_face_queue_worker
+from utils.stt.transcribe_whisper import transcribe_audio
+from utils.audio.record_audio import record_audio_until_release
 
-# Constants
-USE_LOCAL_LLM = True      # Set to False to use OpenAI API
-USE_STREAMING = True      # Enable streaming tokens
-LLM_API_URL = "http://192.168.1.1:5050/generate_llama"
-LLM_STREAM_URL = "http://192.168.1.1:5050/generate_stream"
+USE_LOCAL_LLM = True     
+USE_STREAMING = True   
+LLM_API_URL = "http://127.0.0.1:5050/generate_llama"
+LLM_STREAM_URL = "http://127.0.0.1:5050/generate_stream"
 VOICE_NAME = 'Lily'
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")  # Set your OpenAI API key in environment variables
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")  
+USE_LOCAL_AUDIO = True 
 
-# Flag for local audio generation using your Flask TTS endpoint
-USE_LOCAL_AUDIO = True    # Set to True to use local TTS; if False, use ElevenLabs by adding your api to utils/eleven_labs.py
-
-# LLM configuration dictionary (used by stream_llm_chunks)
 llm_config = {
     "USE_LOCAL_LLM": USE_LOCAL_LLM,
     "USE_STREAMING": USE_STREAMING,
@@ -31,7 +40,7 @@ llm_config = {
     "LLM_STREAM_URL": LLM_STREAM_URL,
     "OPENAI_API_KEY": OPENAI_API_KEY,
     "max_chunk_length": 500,
-    "flush_token_count": 100  
+    "flush_token_count": 300  
 }
 
 def flush_queue(q):
@@ -42,60 +51,73 @@ def flush_queue(q):
         pass
 
 def main():
+    # Initialize directories and connections
     initialize_directories()
     py_face = initialize_py_face()
     socket_connection = create_socket_connection()
     chat_history = load_chat_history()
     
+    # Start default face animation
     default_animation_thread = Thread(target=default_animation_loop, args=(py_face,))
     default_animation_thread.start()
     
-    # Create queues:
-    # 1. chunk_queue for text chunks to be processed by TTS.
-    # 2. audio_queue for the resulting audio/facial-data pairs.
+    # Create queues for TTS and audio
     chunk_queue = Queue()
     audio_queue = Queue()
-    
-    # Start the TTS worker (processes text chunks into audio)
     tts_worker_thread = Thread(target=tts_worker, args=(chunk_queue, audio_queue, USE_LOCAL_AUDIO, VOICE_NAME))
     tts_worker_thread.start()
-    
-    # Start the audio worker (plays audio sequentially)
     audio_worker_thread = Thread(target=audio_face_queue_worker, args=(audio_queue, py_face, socket_connection, default_animation_thread))
     audio_worker_thread.start()
     
+    # Ask for input mode once: 't' for text, 'r' for push-to-talk recording, 'q' to quit
+    mode = ""
+    while mode not in ['t', 'r']:
+        mode = input("Choose input mode: type 't' for text input or 'r' for push-to-talk recording (or 'q' to quit): ").strip().lower()
+        if mode == 'q':
+            return
+
     try:
         while True:
-            user_input = input("Enter text (or 'q' to quit): ").strip()
-            if user_input.lower() == 'q':
-                break
+            if mode == 'r':
+                # Push-to-talk mode (always record using Right Ctrl)
+                print("\nPush-to-talk mode: Press and hold the Right Ctrl key to record, then release to finish (or press 'q' to cancel).")
+                # Wait until the user presses Right Ctrl (with a small delay to avoid busy waiting)
+                while not keyboard.is_pressed('right ctrl'):
+                    if keyboard.is_pressed('q'):
+                        print("Recording cancelled. Exiting push-to-talk mode.")
+                        return  # Alternatively, you might break out or switch mode
+                    time.sleep(0.01)
+                # Record until Right Ctrl is released
+                audio_bytes = record_audio_until_release()
+                transcription, _ = transcribe_audio(audio_bytes)
+                if transcription:
+                 #   print(f"Transcription: {transcription}")
+                    user_input = transcription
+                else:
+                    print("Transcription failed. Please try again.")
+                    continue
+            else:
+                # Text input mode
+                user_input = input("Enter text (or 'q' to quit): ").strip()
+                if user_input.lower() == 'q':
+                    break
 
-            # Interrupt current playback:
             flush_queue(chunk_queue)
             flush_queue(audio_queue)
-            # Stop any current audio playback. Adjust if you have a custom stop mechanism.
             if pygame.mixer.get_init():
                 pygame.mixer.stop()
-
-            # Stream the LLM response; text chunks are enqueued as they are detected (token-based).
             full_response = stream_llm_chunks(user_input, chat_history, chunk_queue, config=llm_config)
-            
             chat_history.append({"input": user_input, "response": full_response})
             save_chat_log(chat_history)
 
     finally:
-        # Wait until all text chunks have been processed
+        # Clean up all threads and close connections
         chunk_queue.join()
-        # Signal the TTS worker to exit
         chunk_queue.put(None)
         tts_worker_thread.join()
-        
-        # Wait until all audio items have been played
         audio_queue.join()
-        # Signal the audio worker to exit
         audio_queue.put(None)
         audio_worker_thread.join()
-        
         stop_default_animation.set()
         default_animation_thread.join()
         pygame.quit()
@@ -103,3 +125,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

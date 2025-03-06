@@ -1,6 +1,15 @@
+# This software is licensed under a **dual-license model**
+# For individuals and businesses earning **under $1M per year**, this software is licensed under the **MIT License**
+# Businesses or organizations with **annual revenue of $1,000,000 or more** must obtain permission to use this software commercially.
+
+
 from threading import Thread
 import pygame
-
+import warnings
+warnings.filterwarnings(
+    "ignore", 
+    message="Couldn't find ffmpeg or avconv - defaulting to ffmpeg, but may not work"
+)
 from livelink.connect.livelink_init import create_socket_connection, initialize_py_face
 from livelink.animations.default_animation import default_animation_loop, stop_default_animation
 

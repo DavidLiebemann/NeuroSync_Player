@@ -1,9 +1,14 @@
+# This software is licensed under a **dual-license model**
+# For individuals and businesses earning **under $1M per year**, this software is licensed under the **MIT License**
+# Businesses or organizations with **annual revenue of $1,000,000 or more** must obtain permission to use this software commercially.
+
+
 import time
 from threading import Thread, Lock
 
 from livelink.animations.default_animation import default_animation_loop, stop_default_animation
 from livelink.send_to_unreal import pre_encode_facial_data_blend_in, pre_encode_facial_data_blend_out, pre_encode_facial_data
-from utils.generated_runners import play_audio_and_animation
+from utils.generated_runners import play_audio_and_animation_openai_realtime
 
 queue_lock = Lock()
 
@@ -39,7 +44,7 @@ def playback_loop(stop_worker, start_event, accumulated_audio, encoded_facial_da
 
         playback_start_time = time.time()
 
-        play_audio_and_animation(playback_audio, playback_facial_data, start_event, socket_connection)
+        play_audio_and_animation_openai_realtime(playback_audio, playback_facial_data, start_event, socket_connection)
 
         playback_end_time = time.time()
         log_queue.put(f"Playback duration: {playback_end_time - playback_start_time:.3f} seconds.")
