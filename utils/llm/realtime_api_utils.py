@@ -156,7 +156,7 @@ async def persistent_realtime_handler(audio_input_queue, conversion_queue, realt
     client = AsyncOpenAI(api_key=api_key)
     while True:
         try:
-            async with client.beta.realtime.connect(model="gpt-4o-mini-realtime-preview-2024-12-17") as connection:
+            async with client.beta.realtime.connect(model="gpt-4o-mini-realtime-preview") as connection:
                 # Initialize connection and calculate the minimum buffer size for audio processing
                 min_buffer_size = await initialize_connection(connection, realtime_config)
                 # Continuously process conversation items

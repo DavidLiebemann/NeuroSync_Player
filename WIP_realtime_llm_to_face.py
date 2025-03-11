@@ -21,7 +21,9 @@ from utils.audio_face_workers import audio_face_queue_worker_realtime, conversio
 from utils.audio.record_audio import record_audio_until_release
 from utils.llm.realtime_api_utils import run_async_realtime
 
-OPENAI_API_KEY = ""  
+from load_openai_api_key import load_openai_api_key
+
+OPENAI_API_KEY = load_openai_api_key()
 
 realtime_config = {
     "min_buffer_duration": 6, 
@@ -71,8 +73,8 @@ def main():
             print("Wait for connection to the realtime API, then press Right Ctrl to record (or 'q' to quit): ")
             while True:
                 if keyboard.is_pressed('q'):
-                    break
-                elif keyboard.is_pressed('right ctrl'):
+                    return
+                elif keyboard.is_pressed('v'):
                     start_record_time = time.time()  # Start timing from audio input
                     print(f"Recording started.")
                     audio_input = record_audio_until_release(sr=22050)
@@ -80,7 +82,7 @@ def main():
                     print(f"Recording ended. Duration: {end_record_time - start_record_time:.3f} seconds.")
                     break
             if keyboard.is_pressed('q'):
-                break  
+                return  
             flush_queue(audio_face_queue)
             if pygame.mixer.get_init():
                 pygame.mixer.stop()

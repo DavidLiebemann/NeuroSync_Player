@@ -19,7 +19,7 @@ def record_audio_until_release(sr=88200):
 
     frames = []
 
-    while keyboard.is_pressed('right ctrl'):
+    while keyboard.is_pressed('v'):
         data = stream.read(1024)
         frames.append(data)
 
