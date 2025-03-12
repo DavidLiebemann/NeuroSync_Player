@@ -25,7 +25,7 @@ from utils.audio_face_workers import audio_face_queue_worker
 from utils.stt.transcribe_whisper import transcribe_audio
 from utils.audio.record_audio import record_audio_until_release
 
-USE_LOCAL_LLM = True     
+USE_LOCAL_LLM = False     
 USE_STREAMING = True   
 LLM_API_URL = "http://127.0.0.1:5050/generate_llama"
 LLM_STREAM_URL = "http://127.0.0.1:5050/generate_stream"
@@ -82,7 +82,7 @@ def main():
                 # Push-to-talk mode (always record using Right Ctrl)
                 print("\nPush-to-talk mode: Press and hold the Right Ctrl key to record, then release to finish (or press 'q' to cancel).")
                 # Wait until the user presses Right Ctrl (with a small delay to avoid busy waiting)
-                while not keyboard.is_pressed('right ctrl'):
+                while not keyboard.is_pressed('r'):
                     if keyboard.is_pressed('q'):
                         print("Recording cancelled. Exiting push-to-talk mode.")
                         return  # Alternatively, you might break out or switch mode

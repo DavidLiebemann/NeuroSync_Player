@@ -7,7 +7,7 @@ import soundfile as sf
 # for the best results, record in 88200 | we overide this for the openai realtime api to the correct input.
 
 def record_audio_until_release(sr=88200):
-    """Record audio from the default microphone until the right Ctrl key is released."""
+    """Record audio from the default microphone until the 'r' key is released."""
     p = pyaudio.PyAudio()
     stream = p.open(format=pyaudio.paInt16,
                     channels=1,
@@ -15,11 +15,11 @@ def record_audio_until_release(sr=88200):
                     input=True,
                     frames_per_buffer=1024)
 
-    print("Recording... Press and hold Right Ctrl to record, release to stop.")
+    print("Recording... Press and hold 'r' to record, release to stop.")
 
     frames = []
 
-    while keyboard.is_pressed('v'):
+    while keyboard.is_pressed('r'):
         data = stream.read(1024)
         frames.append(data)
 
