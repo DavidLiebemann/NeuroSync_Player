@@ -26,7 +26,7 @@ from load_openai_api_key import load_openai_api_key
 OPENAI_API_KEY = load_openai_api_key()
 
 realtime_config = {
-    "min_buffer_duration": 6, 
+    "min_buffer_duration": 3, 
     "sample_rate": 22050, 
     "channels": 1, 
     "sample_width": 2
@@ -70,11 +70,11 @@ def main():
     realtime_thread.start()
     try:
         while True:
-            print("Wait for connection to the realtime API, then press Right Ctrl to record (or 'q' to quit): ")
+            print("Wait for connection to the realtime API, then press 'r' to record (or 'q' to quit): ")
             while True:
                 if keyboard.is_pressed('q'):
                     return
-                elif keyboard.is_pressed('v'):
+                elif keyboard.is_pressed('r'):
                     start_record_time = time.time()  # Start timing from audio input
                     print(f"Recording started.")
                     audio_input = record_audio_until_release(sr=22050)

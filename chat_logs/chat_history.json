@@ -2,5 +2,9 @@
     {
         "input": "opod",
         "response": "Error: OpenAI API call failed."
+    },
+    {
+        "input": "Hallo bitte rede mit mir",
+        "response": "Error: OpenAI API call failed."
     }
 ]
